@@ -4,12 +4,12 @@ describe("Mingler", function()
 	{
 		expect(Mingler).toBeDefined();
 	});
-
+/*
 	describe(".defineModule()", function()
 	{
 		it("should throw error when it is called with no arguments", function()
 		{
-			expect(Mingler.defineModule).toThrow(new Error("module definition required!"));
+			expect(Mingler.module).toThrow(new Error("module definition required!"));
 		});
 
 		it("should throw error when module name is not a string", function()
@@ -26,7 +26,7 @@ describe("Mingler", function()
 			}).toThrow(new Error("module must have a 'factory' function!"));
 		});
 	});
-	
+
 	describe(".getDefinition()", function() {
 		var moduleDefinition = {
 				name: "moduleName",
@@ -72,7 +72,7 @@ describe("Mingler", function()
 			expect(Mingler.getModule("moduleName")).toBe("moduleValue");
 		});
 	});
-
+*/
 	describe(".start()", function() {
 		var module1 = {
 				name: "module1",
@@ -110,8 +110,8 @@ describe("Mingler", function()
 			}
 		
 		beforeEach(function() {
-			Mingler.defineModule(module1);
-			Mingler.defineModule(module2);
+			Mingler.module("module1", module1);
+			Mingler.definition("module2", module2);
 		});
 
 		it("should initialize all defined modules by calling their factory functions", function() {
@@ -119,31 +119,31 @@ describe("Mingler", function()
 			
 			expect(module1.initialized).toBe(true);
 			expect(module2.initialized).toEqual(true);
-			expect(Mingler.getModule("module1")).toBe(module1);
-			expect(Mingler.getModule("module2")).toBe(module2);
+			expect(Mingler.module("module1")).toBe(module1);
+			expect(Mingler.module("module2")).toBe(module2);
 		});
 
 		it("should initialize module with each dependency passed as an argument to its factory", function() {
-			Mingler.defineModule(module3);
+			Mingler.module(module3.name, module3);
 			Mingler.start();
 			
-			expect(Mingler.getModule("module3")).toEqual([module1, module2]);
+			expect(Mingler.module("module3")).toEqual([module1, module2]);
 		});
 
 		it("should initialize module with all dependencies passed inside an argument object to its factory", function() {
-			Mingler.defineModule(module4);
-			Mingler.defineModule(module3);
+			Mingler.definition(module4.name, module4);
+			Mingler.definition(module3.name, module3);
 			Mingler.start();
 			
-			expect(Mingler.getModule("module3")).toEqual([module1, module2]);
-			expect(Mingler.getModule("module4")).toEqual({
+			expect(Mingler.module("module3")).toEqual([module1, module2]);
+			expect(Mingler.module("module4")).toEqual({
 				dep1: module1, 
-				dep2: Mingler.getModule("module3")
+				dep2: Mingler.module("module3")
 			});
 		});
 
 		it("should initialize each module only once", function() {
-			Mingler.defineModule({
+			Mingler.module("aModule", {
 				name: "aModule",
 				dependencies: ["dependency"],
 				factory: function() {
@@ -152,7 +152,7 @@ describe("Mingler", function()
 				},
 				count: 0
 			});
-			Mingler.defineModule({
+			Mingler.definition("dependency", {
 				name: "dependency",
 				factory: function() {
 					this.count++;
@@ -162,8 +162,24 @@ describe("Mingler", function()
 			});
 			Mingler.start();
 			
-			expect(Mingler.getModule("aModule").count).toEqual(1);
-			expect(Mingler.getModule("dependency").count).toEqual(1);
+			expect(Mingler.module("aModule").count).toEqual(1);
+			expect(Mingler.module("dependency").count).toEqual(1);
+		});
+
+		it("should throw error when there is circular dependencies", function() {
+			Mingler.module("a", {
+				dependencies: ["b"],
+				factory: function() {}
+			});
+			Mingler.definition("b", {
+				dependencies: ["c"],
+				factory: function() {}
+			});
+			Mingler.module("c", {
+				dependencies: ["a"],
+				factory: function() {}
+			});
+			expect(Mingler.mingle).toThrow(new Error("Circular dependencies detected - [a -> b -> c -> a]."));
 		});
 
 	});
