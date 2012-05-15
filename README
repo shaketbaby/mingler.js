@@ -1,0 +1,61 @@
+What
+
+    Mingler.js is a small, easy to use and lightweight Dependency Injection container, like Guice, but for JavaScript.
+
+Why
+
+    In my recent projects, we were writing a lot of JavaScript and we were using module pattern to organize our JS files.
+    And we used kind of a Main module to wire all the other modules together.
+    This Main module is pretty much just a bunch of function calls to initialize all the modules and will take care of the dependent relationships among modules.
+    It is not really that bad given the flexibility of JavaScript, but it is trivial and boring stuff and it is not really good having to repeat this on each project.
+    Something like a Dependency Injection container would be very helpful here, I didn't find any hence the born of this little library.
+
+How
+
+  Define a module:
+
+    Mingler.module("name", {
+	factory: // function used to initialize the module
+	dependencies: // optional dependencies of this module
+    })
+
+    module() function can be used to define a module.
+    The definition object passed in as the second parameter is used to provide some meta info about this module.
+    * It must have a "factory" property, which must be a function and will be called when container is starting up.
+      Its return value will be hold as the value of this module.
+    * "dependencies" property is optional. There are tow ways to specify dependencies:
+        1. as an array of dependency names: "factory" function will be called with all dependencies
+           passed as the parameters in the same order as specified in the array;
+        2. as an dependency object: "factory" will be called with a dependency object as the sole parameter. see below examples.
+
+  Get a module: Mingler.module("name")
+
+  Get a definition: Mingler.definition("name")
+
+  Start container: Mingler.mingle() or Mingler.start()
+
+Examples
+
+    // define some modules
+    Mingler.module("module1", {
+        factory: function() {
+            return "module1!";
+        }
+    });
+
+    Mingler.module("module2", {
+        factory: function(module1) {
+            return "module2, depends on " + module;
+        }
+        dependencies: ["module1"]
+    });
+
+    Mingler.module("module3", {
+        factory: function(deps) {
+            return "module3, depends on [" + deps.m1 + "] and [" + deps.m2 + "]";
+        }
+        dependencies: {
+            m1: "module1",
+            m2: "module2"
+        }
+    });
