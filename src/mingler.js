@@ -31,10 +31,10 @@
 		if (!_.isString(name)) {
 			throw new TypeError("module name must be a String");
 		}
-		return modules[name].definition;
+		return modules[name] && modules[name].definition;
 	};
 
-	mingler.module = function(name, definitionOrFactory, factory) {
+	mingler.module = function(name, definitionOrFactory) {
 		if (!_.isString(name)) {
 			throw new TypeError("module name must be a String");
 		}
@@ -44,10 +44,10 @@
 		}
 		// define module with default definitions
 		if (_.isFunction(definitionOrFactory)) {
-			return defineModule(name, {}, definitionOrFactory);
+			return defineModule(name, { factory: definitionOrFactory });
 		}
-		// define module with specified definition and factory
-		return defineModule(name, definitionOrFactory, factory);
+		// define module with specified definition
+		return defineModule(name, definitionOrFactory);
 	};
 
 	mingler.mingle = mingler.start = function() {
@@ -61,17 +61,16 @@
 	 * internal implementation *
 	 ***************************/
 
-	function defineModule(name, definition, factory) {
+	function defineModule(name, definition) {
 		if (!_.isObject(definition)) {
 			throw new TypeError("module definition must be an Object");
 		}
-		if (!_.isFunction(factory)) {
+		if (!_.isFunction(definition.factory)) {
 			throw new TypeError("module factory must be a function");
 		}
 		modules[name] = {
 			module: Status.Raw,
-			factory: factory,
-			definition: _.defaults({}, definition, defaultDefnition)
+			definition: _.defaults(definition, defaultDefnition)
 		};
 		if (status === Status.Started) {
 			initializeModule.call([], modules[name], name);
@@ -97,7 +96,7 @@
 	function createModule(moduleHolder) {
 		var definition = moduleHolder.definition;
 		var dependencies = initDependencies.call(this, definition.dependencies);
-		return moduleHolder.factory.apply(definition, dependencies);
+		return definition.factory.apply(definition, dependencies);
 	}
 
 	function initDependencies(dependencies) {
