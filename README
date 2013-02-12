@@ -1,6 +1,7 @@
 What
 
-    Mingler.js is a small, easy to use and lightweight Dependency Injection container, like Guice, but for JavaScript.
+    Mingler.js is a small, easy to use and lightweight Dependency Injection container, like Guice, but for JavaScript. 
+    It is like AMD but without the dynamic script loading. Dynamic loading works well for server side script, but introduces too big overhead for client side script running in browser.
 
 Why
 
